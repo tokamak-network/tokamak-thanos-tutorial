@@ -1,0 +1,17 @@
+# Project specific
+deployments
+
+# environment variables
+.env
+.env.local
+.env.testnet
+*.delme
+
+# Packages
+node_modules/
+
+# Hardhat build outputs
+artifacts/
+cache
+build
+typechain-types/

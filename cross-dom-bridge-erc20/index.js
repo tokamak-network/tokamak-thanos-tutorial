@@ -105,7 +105,9 @@ const withdrawERC20 = async () => {
 
   const finalizeInterval = setInterval(async () => {
     const currentStatus = await crossChainMessenger.getMessageStatus(
-      withdrawalTx
+      withdrawalTx,
+      0,
+      l1Block,
     )
     console.log('Current message status: ', currentStatus)
   }, 3000)
@@ -142,7 +144,7 @@ const withdrawERC20 = async () => {
 
 const main = async () => {
   await setup();
-  // await depositERC20();
+  await depositERC20();
   await withdrawERC20();
 };
 
