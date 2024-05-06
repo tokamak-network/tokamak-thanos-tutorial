@@ -32,13 +32,6 @@ const setup = async () => {
     l2ChainId,
     l1SignerOrProvider: l1Wallet,
     l2SignerOrProvider: l2Wallet,
-    contracts: {
-      l1: {
-        OptimismPortal: "0x68e22a8EbB10cd85d85d0ABF2aABa10204743FE9",
-        AddressManager: "0xcdE4ce9576782Ccd0F58dCf9d1bbaf679Dd87a07",
-        L2OutputOracle: "0x8ca0D2164cF5467a57fe20DD7cEC9557F6762fD7"
-      }
-    }
   })
   l2NativeTokenContractInL1 = new ethers.Contract(
     process.env.NATIVE_TOKEN,
@@ -111,7 +104,7 @@ const withdraw = async () => {
   const withdrawalMessageInfo = await optimismPortal.calculateWithdrawalMessage(
     withdrawalReceipt
   )
-  console.log(`Withdrawal info: ${JSON.stringify(withdrawalMessageInfo)}`)
+  console.log(`Withdrawal info: ${JSON.stringify(withdrawalReceipt)}`)
 
   let status = await optimismPortal.getMessageStatus(withdrawalReceipt)
   console.log(`Withdaraw transaction status: ${thanosSDK.MessageStatus[status]}`)
@@ -154,7 +147,7 @@ const withdraw = async () => {
 
 const main = async () => {
   await setup();
-  await deposit();
+  // await deposit();
   await withdraw();
 };
 
