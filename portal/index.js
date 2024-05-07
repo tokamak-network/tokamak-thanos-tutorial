@@ -81,7 +81,7 @@ const deposit = async () => {
 
   const relayedTxReceipt = await l2RpcProvider.getTransactionReceipt(relayTxHash)
 
-  console.log(`Relayed transaction receipt on L2: ${JSON.stringify(relayedTxReceipt)}`)
+  console.log(`Relayed transaction receipt on L2: ${relayedTxReceipt.transactionHash}`)
 
   await reportBalances()
 
@@ -145,9 +145,68 @@ const withdraw = async () => {
   console.log(`Withdraw the native token from L2 to L1 takes: ${(new Date() - start) / 1000} seconds`)
 }
 
+const packDepositTransaction = (sender, to, value, gasLimit, data) => {
+  /** Solidity function
+   * function _depositTransaction(
+        address _sender,
+        address _to,
+        uint256 _value,
+        uint64 _gasLimit,
+        bytes calldata _data,
+    )
+   */
+  const depositData = ethers.utils.solidityPack(
+    ['address', 'address', 'uint256', 'uint32', 'bytes'],
+    [sender, to, value, gasLimit, data]
+  )
+  return depositData
+}
+
+const depositOnApproveAndCall = async () => {
+  console.log(`Deposit native token via approveAndCall function`)
+  await reportBalances()
+  const start = new Date()
+
+  const depositData = packDepositTransaction(
+    l1Wallet.address,
+    l1Wallet.address,
+    depositAmount.toString(),
+    200000,
+    '0x'
+  )
+  console.log(`Deposit data: ${depositData}`)
+
+  const approveTx = await l2NativeTokenContractInL1.approveAndCall(
+    optimismPortal.contracts.l1.L1StandardBridge.address,
+    depositAmount,
+    depositData
+  )
+  const approveTxReceipt = await approveTx.wait()
+  console.log(`Approve and call transaction: ${approveTxReceipt.transactionHash}`)
+
+
+  const relayTxHash = await optimismPortal.waitingDepositTransactionRelayed(
+    approveTxReceipt,
+    {}
+  )
+  if (!relayTxHash) {
+    throw new Error("Relay tx hash empty")
+  }
+
+  const relayedTxReceipt = await l2RpcProvider.getTransactionReceipt(relayTxHash)
+
+  console.log(`Relayed transaction receipt on L2: ${relayedTxReceipt.transactionHash}`)
+
+  await reportBalances()
+
+  console.log(`Deposit via OptimsimPortal by approveAndCall takes ${(new Date() - start) / 1000} seconds`)
+
+}
+
 const main = async () => {
   await setup();
   // await deposit();
+  await depositOnApproveAndCall();
   await withdraw();
 };
 
