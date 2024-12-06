@@ -10,6 +10,8 @@ const l1Erc20Addr = process.env.L1_ERC20_ADDRESS
 const l2Erc20Addr = process.env.L2_ERC20_ADDRESS
 const nativeToken = process.env.NATIVE_TOKEN
 
+const L2USDCAddr = '0x4200000000000000000000000000000000000778'
+const L2USDCBridge = '0x4200000000000000000000000000000000000775'
 
 const l1RpcProvider = new ethers.providers.JsonRpcProvider(process.env.L1_RPC);
 const l2RpcProvider = new ethers.providers.JsonRpcProvider(process.env.L2_RPC)
@@ -83,7 +85,14 @@ const withdrawERC20 = async () => {
   const start = new Date();
   await reportBalances();
 
-  // NOTE: If you want to withdraw USDC.e, you must approve to the L2USDCBridge contract with the approval function
+  // NOTE: If you want to withdraw USDC.e, you must approve the L2USDCBridge contract with the approval function
+  if (l2Erc20Addr === L2USDCAddr) {
+    const tx = await l2ERC20.approve(L2USDCBridge, withdrawAmount);
+
+    console.log("Transaction sent. Waiting for confirmation...");
+    const receipt = await tx.wait();
+    console.log("Approval successful:", receipt.transactionHash);
+  }
 
   const withdrawalResponse = await crossChainMessenger.withdrawERC20(l1Erc20Addr, l2Erc20Addr, withdrawAmount)
   const withdrawalTx = await withdrawalResponse.wait()
