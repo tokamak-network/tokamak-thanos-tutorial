@@ -16,8 +16,8 @@ const l2RpcProvider = new ethers.providers.JsonRpcProvider(process.env.L2_RPC)
 const l1Wallet = new ethers.Wallet(privateKey, l1RpcProvider);
 const l2Wallet = new ethers.Wallet(privateKey, l2RpcProvider);
 
-const depositAmount = BigInt(1e18)
-const withdrawAmount = BigInt(1e18)
+const depositAmount = BigInt(1e6)
+const withdrawAmount = BigInt(1e6)
 
 // Global variable because we need them almost everywhere
 let crossChainMessenger;
@@ -59,7 +59,7 @@ const depositERC20 = async () => {
   await allowanceResponse.wait();
   console.log(`Approval ERC20 token transaction hash (on L1): ${allowanceResponse.hash}`)
 
-  const response = await crossChainMessenger.depositERC20(
+  const response = await crossChainMessenger.bridgeERC20(
     l1Erc20Addr,
     l2Erc20Addr,
     depositAmount
@@ -81,7 +81,9 @@ const depositERC20 = async () => {
 const withdrawERC20 = async () => {
   const l1Block = await l1RpcProvider.getBlockNumber()
   const start = new Date();
-  await reportBalances()
+  await reportBalances();
+
+  // NOTE: If you want to withdraw USDC.e, you must approve to the L2USDCBridge contract with the approval function
 
   const withdrawalResponse = await crossChainMessenger.withdrawERC20(l1Erc20Addr, l2Erc20Addr, withdrawAmount)
   const withdrawalTx = await withdrawalResponse.wait()

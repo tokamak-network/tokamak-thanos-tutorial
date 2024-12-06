@@ -14,7 +14,7 @@ const l1RpcProvider = new ethers.providers.JsonRpcProvider(process.env.L1_RPC);
 const l2RpcProvider = new ethers.providers.JsonRpcProvider(process.env.L2_RPC)
 const l1Wallet = new ethers.Wallet(privateKey, l1RpcProvider);
 const l2Wallet = new ethers.Wallet(privateKey, l2RpcProvider);
-
+const zeroAddr = '0x'.padEnd(42, '0')
 const depositAmount = BigInt(1)
 const withdrawAmount = BigInt(1)
 
@@ -32,7 +32,7 @@ const setup = async () => {
     l1SignerOrProvider: l1Wallet,
     l2SignerOrProvider: l2Wallet,
     bedrock: true,
-    nativeTokenAddress: process.env.L2_NATIVE_TOKEN,
+    nativeTokenAddress: process.env.L2_NATIVE_TOKEN
   });
   nativeTokenOnL1Contract = new ethers.Contract(l2NativeTokenAddr, NativeTokenABI, l1Wallet);
 };
@@ -57,7 +57,7 @@ const depositNativeToken = async () => {
   await allowanceResponse.wait();
   console.log(`Approval native token transaction hash (on L1): ${allowanceResponse.hash}`)
 
-  const response = await crossChainMessenger.depositNativeToken(depositAmount);
+  const response = await crossChainMessenger.bridgeNativeToken(depositAmount);
   console.log(`Deposit transaction hash (on L1): ${response.hash}`);
   await response.wait();
 
@@ -108,10 +108,7 @@ const withdrawNativeToken = async () => {
   try {
     await crossChainMessenger.waitForMessageStatus(
       withdrawalTx,
-      thanosSDK.MessageStatus.READY_FOR_RELAY,
-      {
-        fromBlockOrBlockHash: l1Block
-      }
+      thanosSDK.MessageStatus.READY_FOR_RELAY
     )
   } finally {
     clearInterval(finalizeInterval)

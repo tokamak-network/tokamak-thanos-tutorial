@@ -14,8 +14,7 @@ const privateKey = process.env.PRIVATE_KEY
 const l1ChainId = process.env.L1_CHAIN_ID
 const l2ChainId = process.env.L2_CHAIN_ID
 const erc20ABI = JSON.parse(fs.readFileSync("erc20.json"));
-
-
+let l1Signer, l2Signer
 const depositAmount = BigInt(1)
 const withdrawAmount = BigInt(1)
 
@@ -44,7 +43,7 @@ const getSigners = async () => {
 
 
 const setup = async() => {
-  const [l1Signer, l2Signer] = await getSigners()
+  [l1Signer, l2Signer] = await getSigners()
   console.log(`L1 address: ${l1Signer.address}`)
   crossChainMessenger = new thanosSDK.CrossChainMessenger({
       bedrock: true,
@@ -69,7 +68,7 @@ const depositETH = async () => {
   console.log("Depositing ETH from Ethereum to Thanos")
   const start = new Date()
 
-  const response = await crossChainMessenger.depositETH(depositAmount)
+  const response = await crossChainMessenger.bridgeETH(depositAmount)
   console.log(`Deposit transaction hash on L1: ${response.hash}`)
   await response.wait()
 
@@ -80,6 +79,7 @@ const depositETH = async () => {
 }
 
 const withdrawETH = async () => {
+  const start = new Date()
   console.log("Withdrawing ETH from Thanos to Ethereum")
 
   await reportBalances()

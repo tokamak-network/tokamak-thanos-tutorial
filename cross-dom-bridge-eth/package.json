@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tokamak-network/thanos-sdk": "^0.0.8",
-    "dotenv": "^16.4.5",
-    "ethers": "^5.7.2"
+    "@tokamak-network/core-utils": "^0.0.2",
+    "@tokamak-network/thanos-sdk": "^0.0.13",
+    "dotenv": "^16.4.5"
   }
 }
