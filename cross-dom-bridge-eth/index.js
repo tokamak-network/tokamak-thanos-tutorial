@@ -15,9 +15,8 @@ const l1ChainId = process.env.L1_CHAIN_ID
 const l2ChainId = process.env.L2_CHAIN_ID
 const erc20ABI = JSON.parse(fs.readFileSync("erc20.json"));
 let l1Signer, l2Signer
-const depositAmount = BigInt(1)
-const withdrawAmount = BigInt(1)
-
+const depositAmount = BigInt(2000000000000000000)
+const withdrawAmount = BigInt(100000000000000000)
 
 // Global variable because we need them almost everywhere
 let crossChainMessenger = null
@@ -48,7 +47,7 @@ const setup = async() => {
   crossChainMessenger = new thanosSDK.CrossChainMessenger({
       bedrock: true,
       l1ChainId: l1ChainId,
-      l2ChainId: l2ChainId, 
+      l2ChainId: l2ChainId,
       l1SignerOrProvider: l1Signer,
       l2SignerOrProvider: l2Signer,
   })
@@ -76,6 +75,8 @@ const depositETH = async () => {
   await crossChainMessenger.waitForMessageStatus(response, thanosSDK.MessageStatus.RELAYED)
 
   console.log(`Deposit ETH took ${(new Date()-start)/1000} seconds\n\n`)
+
+
 }
 
 const withdrawETH = async () => {
@@ -124,7 +125,11 @@ const withdrawETH = async () => {
 
 const main = async () => {
     await setup()
+
+    await reportBalances()
     await depositETH()
+    await reportBalances()
+
     await withdrawETH()
 }
 

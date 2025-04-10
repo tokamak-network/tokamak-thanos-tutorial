@@ -15,8 +15,10 @@ const l2RpcProvider = new ethers.providers.JsonRpcProvider(process.env.L2_RPC)
 const l1Wallet = new ethers.Wallet(privateKey, l1RpcProvider);
 const l2Wallet = new ethers.Wallet(privateKey, l2RpcProvider);
 const zeroAddr = '0x'.padEnd(42, '0')
-const depositAmount = BigInt(1)
-const withdrawAmount = BigInt(1)
+const depositAmount = BigInt(1000000000000000000)
+const withdrawAmount = BigInt(100000000000000000)
+
+const l2NativeToken = process.env.NATIVE_TOKEN || ''
 
 // Global variable because we need them almost everywhere
 let crossChainMessenger;
@@ -39,7 +41,7 @@ const setup = async () => {
 
 const reportBalances = async () => {
   const l1Balance = (await nativeTokenOnL1Contract.balanceOf(walletAddr)).toString();
-  const l2Balance = (await crossChainMessenger.l2Signer.getBalance()) 
+  const l2Balance = (await crossChainMessenger.l2Signer.getBalance())
   console.log(`Native Token on L1:${l1Balance}. Native Token on L2: ${l2Balance}`);
 };
 
@@ -62,7 +64,7 @@ const depositNativeToken = async () => {
   await response.wait();
 
   console.log("Waiting for status to change to RELAYED");
-  
+
   await crossChainMessenger.waitForMessageStatus(
     response.hash,
     thanosSDK.MessageStatus.RELAYED
@@ -84,7 +86,7 @@ const withdrawNativeToken = async () => {
   console.log(`Withdraw transaction hash: ${withdrawalTx.transactionHash}`)
 
   console.log(`Wait the message status changed to READY_TO_PROVE`)
-  
+
   await crossChainMessenger.waitForMessageStatus(
     withdrawalTx.transactionHash,
     thanosSDK.MessageStatus.READY_TO_PROVE,
@@ -124,7 +126,7 @@ const withdrawNativeToken = async () => {
     withdrawalResponse,
     thanosSDK.MessageStatus.RELAYED,
     {
-      fromBlockOrBlockHash: l1Block 
+      fromBlockOrBlockHash: l1Block
     }
   )
 
@@ -132,8 +134,39 @@ const withdrawNativeToken = async () => {
   console.log(`Withdraw native token took ${(new Date() - start) / 1000} seconds\n`);
 };
 
+
+const fundNativeToken = async (amount) => {
+  console.log('Faucet amount:', amount)
+
+  const l2NativeTokenBalanceB4 = await nativeTokenOnL1Contract.balanceOf(
+    walletAddr
+  )
+  console.log(
+    'Native token balance in L1 before funding:',
+    l2NativeTokenBalanceB4.toString()
+  )
+
+  const fundTx = await nativeTokenOnL1Contract
+    .connect(l1Wallet)
+    .faucet(ethers.BigNumber.from('' + amount))
+  console.log('Faucet transaction hash: ', fundTx.hash)
+  await fundTx.wait()
+
+  const l2NativeTokenBalance = await nativeTokenOnL1Contract.balanceOf(
+    walletAddr
+  )
+
+  console.log(
+    'Native token balance in L1 after funding:',
+    l2NativeTokenBalance.toString()
+  )
+}
+
 const main = async () => {
   await setup();
+
+  await fundNativeToken(BigInt(100000000000000000000));
+
   await depositNativeToken();
   await withdrawNativeToken();
 };
