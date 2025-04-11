@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@tokamak-network/core-utils": "^0.0.2",
-    "@tokamak-network/thanos-sdk": "^0.0.13",
+    "@tokamak-network/thanos-sdk": "^0.0.14",
     "dotenv": "^16.4.5"
   }
 }
